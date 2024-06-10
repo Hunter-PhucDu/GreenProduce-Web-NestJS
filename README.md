@@ -1,16 +1,10 @@
 ## Description
-Backend Website Nông sản sạch
+Backend Website Green Produce
 
 ## Requirement
 ```
 Node version 18.x.x
 ```
-# Cài và chạy chương trình
-  1. Cài Nodejs
-  2. Mở terminal trong VSCode bằng lệnh: 'Ctrl' + '`'
-  3. Cài các thư viện cần thiết: npm install
-  4. Chương trình chế độ watch mode: npm run start:dev
-
 ## Installation
 
 ```bash
