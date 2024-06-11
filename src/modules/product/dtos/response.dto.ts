@@ -77,7 +77,6 @@ export class ProductResponseDto {
   quantitySold?: number;
 }
 
-
 @Exclude()
 export class ProductsResponseDto {
   @Expose()

@@ -1,7 +1,14 @@
 import { Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiOperation, ApiTags,  ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { ForgotPasswordDto, GenerateOtpDto, LoginRequestDto, LogOutRequestDto, RefreshTokenRequestDto, SignUpRequestDto } from './dtos/request.dto';
+import {
+  ForgotPasswordDto,
+  GenerateOtpDto,
+  LoginRequestDto,
+  LogOutRequestDto,
+  RefreshTokenRequestDto,
+  SignUpRequestDto,
+} from './dtos/request.dto';
 import { LoginResponseDto } from './dtos/response.dto';
 import { JwtAuthGuard } from 'modules/shared/gaurds/jwt.guard';
 import { ApiSuccessResponse } from 'modules/shared/decorators/api-success-response.decorator';

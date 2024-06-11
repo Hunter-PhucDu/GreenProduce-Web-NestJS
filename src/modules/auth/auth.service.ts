@@ -1,5 +1,11 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { ForgotPasswordDto, LoginRequestDto, LogOutRequestDto, RefreshTokenRequestDto, SignUpRequestDto } from './dtos/request.dto';
+import {
+  ForgotPasswordDto,
+  LoginRequestDto,
+  LogOutRequestDto,
+  RefreshTokenRequestDto,
+  SignUpRequestDto,
+} from './dtos/request.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UserModel } from 'modules/shared/models/user.model';
@@ -24,7 +30,7 @@ export class AuthService {
     private readonly cartModel: CartModel,
     private readonly otpModel: OtpModel,
     private readonly mailerService: MailerService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     const countAdmins = await this.adminModel.model.countDocuments();
@@ -66,6 +72,71 @@ export class AuthService {
 
   async checkPassword(password: string, hashedPassword: string): Promise<boolean> {
     return await bcrypt.compare(password, hashedPassword);
+  }
+
+  async _sendMailConfirmation(email: string, fullName: string): Promise<void> {
+    await this.mailerService.sendMail({
+      to: email,
+      from: {
+        name: 'Nông Sản Green',
+        address: 'nongsangreentb@gmail.com',
+      },
+      subject: 'Chào mừng đến với Nông sản Green',
+      html: `
+      <table style="font-family: Google Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif; max-width: 600px; width: 100%; margin: 0 auto; padding: 20px; border: 1px solid #dadce0; border-radius: 8px;">
+      <tbody>
+          <tr>
+              <td style="text-align: center;">
+                  <img src="https://lh3.googleusercontent.com/a/ACg8ocKC9Lcvx5inst9kEBSlBvICjZ7veh4M4xvBqtTORI1vRaZ8BCg=s96-c-rg-br100"
+                      width="100" height="100" aria-hidden="true" style="margin-bottom: 16px; border-radius: 50%;" alt="Google">
+                  <h1 style="font-size: 24px; margin: 0;">Nông sản Green</h1>
+              </td>
+          </tr>
+          <tr>
+              <td>
+                  <p style="font-size: 18px;">Xin chào <strong>${fullName}</strong>,</p>
+                  <p>Chúc mừng bạn đã đăng ký thành công tài khoản của <b>Nông sản Green</b>. Chúc bạn
+                      có những trải nhiệm thật vui vẻ.</p>
+                  <p>Bạn đã sẵn sàng để khám phá và tận hưởng tất cả các dịch vụ mà
+                      chúng tôi cung cấp. Nếu bạn có bất kỳ câu hỏi hoặc cần hỗ trợ, vui lòng liên hệ với bộ
+                      phận hỗ trợ khách hàng của chúng tôi.</p>
+                  <p>Cảm ơn bạn đã tin tưởng và lựa chọn dịch vụ của chúng tôi.</p>
+                  <p style="text-align: right; font-weight: bold;">Trân trọng,<br>
+                      Nông sản Green</p>
+                  <p>Mọi thắc mắc xin liên hệ: <b>nongsangreentb@gmail.com</b></p>
+              </td>
+          </tr>
+      </tbody>
+  </table>`,
+    });
+  }
+
+  async generateOtp(email: string): Promise<void> {
+    const user = await this.userModel.model.findOne({ email });
+
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+
+    const otp = authenticator.generate(this.configService.get('OTP_SECRET')).slice(0, 6);
+
+    const otpDoc = new this.otpModel.model({
+      userId: user._id,
+      otp,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    });
+
+    await otpDoc.save();
+
+    await this.mailerService.sendMail({
+      to: email,
+      from: {
+        name: 'Nông Sản Green',
+        address: 'nongsangreentb@gmail.com',
+      },
+      subject: 'Mã OTP',
+      html: `<p>Mã OTP của bạn là <b> ${otp} </b>. Mã OTP sẽ hết hạn sau 5 phút. Lưu lý: tuyệt đối không cung cấp OTP cho bất cứ ai vì bất cứ lý do nào.</p>`,
+    });
   }
 
   async login(loginDto: LoginRequestDto): Promise<{ accessToken: string }> {
@@ -110,43 +181,6 @@ export class AuthService {
     await this.userModel.model.findByIdAndUpdate(_id, { refreshToken: null });
   }
 
-  private async _sendMailConfirmation(email: string, fullName: string): Promise<void> {
-    await this.mailerService.sendMail({
-      to: email,
-      from: {
-        name: 'Nông Sản Green',
-        address: 'nongsangreentb@gmail.com',
-      },
-      subject: 'Chào mừng đến với Nông sản Green',
-      html: `
-      <table style="font-family: Google Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif; max-width: 600px; width: 100%; margin: 0 auto; padding: 20px; border: 1px solid #dadce0; border-radius: 8px;">
-      <tbody>
-          <tr>
-              <td style="text-align: center;">
-                  <img src="https://lh3.googleusercontent.com/a/ACg8ocKC9Lcvx5inst9kEBSlBvICjZ7veh4M4xvBqtTORI1vRaZ8BCg=s96-c-rg-br100"
-                      width="100" height="100" aria-hidden="true" style="margin-bottom: 16px; border-radius: 50%;" alt="Google">
-                  <h1 style="font-size: 24px; margin: 0;">Nông sản Green</h1>
-              </td>
-          </tr>
-          <tr>
-              <td>
-                  <p style="font-size: 18px;">Xin chào <strong>${fullName}</strong>,</p>
-                  <p>Chúc mừng bạn đã đăng ký thành công tài khoản của <b>Nông sản Green</b>. Chúc bạn
-                      có những trải nhiệm thật vui vẻ.</p>
-                  <p>Bạn đã sẵn sàng để khám phá và tận hưởng tất cả các dịch vụ mà
-                      chúng tôi cung cấp. Nếu bạn có bất kỳ câu hỏi hoặc cần hỗ trợ, vui lòng liên hệ với bộ
-                      phận hỗ trợ khách hàng của chúng tôi.</p>
-                  <p>Cảm ơn bạn đã tin tưởng và lựa chọn dịch vụ của chúng tôi.</p>
-                  <p style="text-align: right; font-weight: bold;">Trân trọng,<br>
-                      Nông sản Green</p>
-                  <p>Mọi thắc mắc xin liên hệ: <b>nongsangreentb@gmail.com</b></p>
-              </td>
-          </tr>
-      </tbody>
-  </table>`,
-    });
-  }
-
   async signUp(signupDto: SignUpRequestDto, avatar: string): Promise<SignUpResponseDto> {
     try {
       const { userName, fullName, email, phone, password } = signupDto;
@@ -174,34 +208,6 @@ export class AuthService {
     }
   }
 
-  async generateOtp(email: string): Promise<void> {
-    const user = await this.userModel.model.findOne({ email });
-
-    if (!user) {
-      throw new BadRequestException('User not found.');
-    }
-
-    const otp = authenticator.generate(this.configService.get('OTP_SECRET')).slice(0, 6);
-    
-    const otpDoc = new this.otpModel.model({
-      userId: user._id,
-      otp,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-    });
-
-    await otpDoc.save();
-
-    await this.mailerService.sendMail({
-      to: email,
-      from: {
-        name: 'Nông Sản Green',
-        address: 'nongsangreentb@gmail.com',
-      },
-      subject: 'Mã OTP',
-      html:  `<p>Mã OTP của bạn là <b> ${otp} </b>. Mã OTP sẽ hết hạn sau 5 phút. Lưu lý: tuyệt đối không cung cấp OTP cho bất cứ ai vì bất cứ lý do nào.</p>`,
-    });
-  }
-
   async forgotPassword(forgotPwDto: ForgotPasswordDto): Promise<void> {
     const user = await this.userModel.model.findOne({ email: forgotPwDto.email });
 
@@ -209,20 +215,15 @@ export class AuthService {
       throw new BadRequestException('User not found.');
     }
 
-    const otpDoc = await this.otpModel.model.findOne({ userId: user._id, otp: forgotPwDto.otp});
+    const otpDoc = await this.otpModel.model.findOne({ userId: user._id, otp: forgotPwDto.otp });
 
     if (!otpDoc || otpDoc.expiresAt < new Date()) {
       throw new BadRequestException('Invalid or expired OTP.');
     }
 
     const hashedPw = await this.hashPassword(forgotPwDto.newPassword);
-    await this.userModel.model.findOneAndUpdate(
-      { _id: user._id },
-      { password: hashedPw },
-      { new: true },
-    );
+    await this.userModel.model.findOneAndUpdate({ _id: user._id }, { password: hashedPw }, { new: true });
 
-    await this.otpModel.model.deleteOne({ _id: otpDoc._id }); // delete otp 
+    await this.otpModel.model.deleteOne({ _id: otpDoc._id }); // delete otp
   }
-
 }

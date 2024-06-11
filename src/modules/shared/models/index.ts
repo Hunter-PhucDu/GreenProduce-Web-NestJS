@@ -19,5 +19,5 @@ export default [
   ProductModel,
   ProductVariantModel,
   PaymentModel,
-  OtpModel
+  OtpModel,
 ];

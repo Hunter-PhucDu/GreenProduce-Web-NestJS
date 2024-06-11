@@ -24,16 +24,6 @@ export class CartItemController {
     return await this.cartItemService.addCartItem(body);
   }
 
-  // @Get(':cartItemId')
-  // @ApiOperation({
-  //   summary: 'Get cart item details',
-  //   description: 'Get cart item details',
-  // })
-  // @ApiSuccessResponse({ dataType: CartItemResponseDto })
-  // async getCartItem(@Param('cartItemId', new ValidateObjectId()) cartItemId: string): Promise<CartItemResponseDto> {
-  //   return await this.cartItemService.getCartItem(cartItemId);
-  // }
-
   @Get(':cartItemId')
   @ApiOperation({
     summary: 'Get cart item details',
@@ -43,17 +33,6 @@ export class CartItemController {
   async getCartItem(@Param('cartItemId', new ValidateObjectId()) cartItemId: string): Promise<CartItemResponseDto> {
     return await this.cartItemService.getCartItem(cartItemId);
   }
-
-  // @Get('')
-  // @ApiOperation({
-  //   summary: 'Get cart details',
-  //   description: 'Get cart details',
-  // })
-  // @ApiSuccessResponse({ dataType: CartResponseDto })
-  // async getCourse(@Req() req): Promise<CartResponseDto> {
-  //   const user: IJwtPayload = req.user;
-  //   return await this.cartService.getCart(user);
-  // }
 
   @Delete(':cartItemId/remove')
   @Roles([ERole.ADMIN])

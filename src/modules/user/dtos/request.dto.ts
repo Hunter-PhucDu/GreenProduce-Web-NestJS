@@ -188,5 +188,4 @@ export class GetUsersRequestDto extends PaginationDto {
 }
 
 @Exclude()
-export class GetDeliveriesInfoRequestDto extends PaginationDto {
-}
+export class GetDeliveriesInfoRequestDto extends PaginationDto {}

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Post,
   Put,
   Delete,
   UseGuards,
@@ -21,11 +22,12 @@ import { ERole } from '../../modules/shared/enums/auth.enum';
 import { JwtAuthGuard } from '../../modules/shared/gaurds/jwt.guard';
 import { RolesGuard } from '../../modules/shared/gaurds/role.gaurd';
 import {
+  AddDeliveryInfoRequestDto,
   ChangePasswordRequestDto,
   GetUsersRequestDto,
   UpdateUserRequestDto,
 } from './dtos/request.dto';
-import { ChangePasswordResponseDto, UserResponseDto } from './dtos/response.dto';
+import { ChangePasswordResponseDto, DeliveryInfoResponseDto, UserResponseDto } from './dtos/response.dto';
 import { UserService } from './user.service';
 import { ValidateObjectId } from '../../modules/shared/validators/id.validator';
 import { IJwtPayload } from '../../modules/shared/interfaces/auth.interface';
@@ -124,5 +126,46 @@ export class UserController {
     @Query() getUsersRequestDto: GetUsersRequestDto,
   ): Promise<ListRecordSuccessResponseDto<UserResponseDto>> {
     return await this.userService.getUsers(getUsersRequestDto);
+  }
+
+  @Post('DeliveryInfo')
+  @Roles([ERole.ADMIN, ERole.USER])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Add new delivery info',
+    description: 'Add new delivery info',
+  })
+  @ApiSuccessResponse({ dataType: DeliveryInfoResponseDto })
+  async addDeliveryInfo(@Body() body: AddDeliveryInfoRequestDto, @Req() req): Promise<DeliveryInfoResponseDto> {
+    const user: IJwtPayload = req.user;
+    return await this.userService.addDeliveryInfo(user, body);
+  }
+
+  @Put('DeliveryInfo/:deliveryInfoId')
+  @Roles([ERole.ADMIN, ERole.USER])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Update delivery info',
+    description: 'Update delivery info',
+  })
+  @UseInterceptors(FileInterceptor('avatar', userAvatarStorageConfig))
+  @ApiSuccessResponse({ dataType: UserResponseDto })
+  async updateDeliveryInfo(
+    @Body() body: DeliveryInfoResponseDto,
+    @Param('deliveryInfoId', new ValidateObjectId()) deliveryInfoId: string,
+  ): Promise<UserResponseDto> {
+    const res = await this.userService.updateDeliveryInfo(deliveryInfoId, body);
+    return plainToInstance(UserResponseDto, res);
+  }
+
+  @Delete('DeliveryInfo/:deliveryInfoId')
+  @Roles([ERole.ADMIN, ERole.USER])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Remove delivery info',
+    description: 'Remove delivery info',
+  })
+  async removeDeliveryInfo(@Param('deliveryInfoId', new ValidateObjectId()) deliveryInfoId: string): Promise<void> {
+    await this.userService.removeDeliveryInfo(deliveryInfoId);
   }
 }

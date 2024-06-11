@@ -78,4 +78,4 @@ import { Otp, OtpSchema } from './schemas/otp.schema';
   providers: [Logger, JwtStrategy, ...models],
   exports: [Logger, JwtStrategy, JwtModule, ConfigModule, ...models],
 })
-export class SharedModule { }
+export class SharedModule {}

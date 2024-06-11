@@ -13,7 +13,7 @@ export class CartItemService {
     private readonly cartItemModel: CartItemModel,
     private readonly productModel: ProductModel,
     private readonly productVariantModel: ProductVariantModel,
-  ) { }
+  ) {}
 
   async addCartItem(addCartItemDto: AddCartItemRequestDto): Promise<CartItemResponseDto> {
     try {
@@ -48,12 +48,10 @@ export class CartItemService {
 
   async getCartItem(cartItemId: string): Promise<CartItemResponseDto> {
     try {
-      const cartItemDoc = await this.cartItemModel.model
-        .findById(cartItemId)
-        .populate([
-          { path: 'productId', model: 'Product' },
-          { path: 'productVariantId', model: 'ProductVariant' },
-        ]);
+      const cartItemDoc = await this.cartItemModel.model.findById(cartItemId).populate([
+        { path: 'productId', model: 'Product' },
+        { path: 'productVariantId', model: 'ProductVariant' },
+      ]);
 
       if (!cartItemDoc) throw new BadRequestException('Cart item does not exist');
 

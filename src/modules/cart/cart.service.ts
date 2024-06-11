@@ -10,7 +10,7 @@ export class CartService {
   constructor(
     private readonly cartModel: CartModel,
     private readonly cartItemModel: CartItemModel,
-  ) { }
+  ) {}
 
   async getCart(user): Promise<CartResponseDto> {
     try {

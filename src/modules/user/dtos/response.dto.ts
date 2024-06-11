@@ -97,7 +97,6 @@ export class ChangePasswordResponseDto {
   newPassword: string;
 }
 
-
 export class DeliveryInfoResponseDto {
   @ApiProperty({
     type: String,

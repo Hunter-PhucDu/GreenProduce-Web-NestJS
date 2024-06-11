@@ -23,9 +23,7 @@ export class ProductVariantController {
     description: 'Add new product variant',
   })
   @ApiSuccessResponse({ dataType: ProductVariantResponseDto })
-  async createCart(
-    @Body() body: AddProductVariantRequestDto,
-  ): Promise<ProductVariantResponseDto> {
+  async createCart(@Body() body: AddProductVariantRequestDto): Promise<ProductVariantResponseDto> {
     return await this.productVariantService.addProductVariant(body);
   }
 
@@ -46,7 +44,7 @@ export class ProductVariantController {
     summary: 'Remove product variant',
     description: 'Remove product variant',
   })
-  async removeUsersInCourse(
+  async removeProductVarian(
     @Param('productVariantId', new ValidateObjectId()) productVariantId: string,
   ): Promise<void> {
     await this.productVariantService.removeProductVariant(productVariantId);

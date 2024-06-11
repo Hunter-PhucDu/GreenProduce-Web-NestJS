@@ -16,7 +16,10 @@ import { ProductResponseDto, ProductsResponseDto } from './dtos/response.dto';
 import { AddProductRequestDto, GetProductsRequestDto, UpdateProductRequestDto } from './dtos/request.dto';
 import { Roles } from 'modules/shared/decorators/role.decorator';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ApiSuccessPaginationResponse, ApiSuccessResponse } from 'modules/shared/decorators/api-success-response.decorator';
+import {
+  ApiSuccessPaginationResponse,
+  ApiSuccessResponse,
+} from 'modules/shared/decorators/api-success-response.decorator';
 import { JwtAuthGuard } from 'modules/shared/gaurds/jwt.guard';
 import { RolesGuard } from 'modules/shared/gaurds/role.gaurd';
 import { ERole } from 'modules/shared/enums/auth.enum';
@@ -42,7 +45,7 @@ const productImageStorageConfig: MulterOptions = {
 @Controller('products')
 @ApiTags('Products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService) {}
 
   @Post('')
   @UseGuards(JwtAuthGuard, RolesGuard)

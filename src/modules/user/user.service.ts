@@ -8,18 +8,23 @@ import { IJwtPayload } from '../../modules/shared/interfaces/auth.interface';
 import { UserModel } from '../../modules/shared/models/user.model';
 import { getPagination } from '../../modules/shared/utils/get-pagination';
 import {
+  AddDeliveryInfoRequestDto,
   ChangePasswordRequestDto,
   GetUsersRequestDto,
+  UpdateDeliveryInfoRequestDto,
   UpdateUserRequestDto,
 } from './dtos/request.dto';
-import { ChangePasswordResponseDto, UserResponseDto } from './dtos/response.dto';
+import { ChangePasswordResponseDto, DeliveryInfoResponseDto, UserResponseDto } from './dtos/response.dto';
+import { Types } from 'mongoose';
+import { DeliveryInfoModel } from 'modules/shared/models/deliveryInfo.model';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userModel: UserModel,
     private readonly authService: AuthService,
-  ) { }
+    private readonly deliveryInfoModel: DeliveryInfoModel,
+  ) {}
 
   async updateUser(user: IJwtPayload, userId: string, updateUserDto: UpdateUserRequestDto): Promise<UserResponseDto> {
     try {
@@ -73,16 +78,13 @@ export class UserService {
     }
   }
 
-  async deleteUser(userId: string): Promise<void> {
-    try {
-      const deletedUser = await this.userModel.model.findOneAndDelete({ _id: userId });
-
-      if (!deletedUser) {
-        throw new BadRequestException('User not found');
-      }
-    } catch (error) {
-      throw new BadRequestException(`Error while deleting user: ${error.message}`);
+  async getUser(user: IJwtPayload, userId: string): Promise<UserResponseDto> {
+    if (user.role === ERole.USER) {
+      if (user._id !== userId) throw new UnauthorizedException('User is not allowed for this action');
     }
+
+    const userDoc = await this.userModel.model.findById(userId);
+    return plainToInstance(UserResponseDto, userDoc.toObject());
   }
 
   async getUsers(paginationDto: GetUsersRequestDto): Promise<ListRecordSuccessResponseDto<UserResponseDto>> {
@@ -107,12 +109,62 @@ export class UserService {
     };
   }
 
-  async getUser(user: IJwtPayload, userId: string): Promise<UserResponseDto> {
-    if (user.role === ERole.USER) {
-      if (user._id !== userId) throw new UnauthorizedException('User is not allowed for this action');
-    }
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      const deletedUser = await this.userModel.model.findOneAndDelete({ _id: userId });
 
-    const userDoc = await this.userModel.model.findById(userId);
-    return plainToInstance(UserResponseDto, userDoc.toObject());
+      if (!deletedUser) {
+        throw new BadRequestException('User not found');
+      }
+    } catch (error) {
+      throw new BadRequestException(`Error while deleting user: ${error.message}`);
+    }
+  }
+
+  async addDeliveryInfo(user, addDeliveryInfoDto: AddDeliveryInfoRequestDto): Promise<DeliveryInfoResponseDto> {
+    try {
+      const userId = new Types.ObjectId(user._id);
+
+      const newDelivery = await this.deliveryInfoModel.save({
+        owner: userId,
+        ...addDeliveryInfoDto,
+      });
+
+      return plainToClass(DeliveryInfoResponseDto, newDelivery.toObject());
+    } catch (error) {
+      throw new BadRequestException(`Error while add delivery info: ${error.message}`);
+    }
+  }
+
+  async updateDeliveryInfo(
+    deliveryInfoId: string,
+    updateDeliveryInfoDto: UpdateDeliveryInfoRequestDto,
+  ): Promise<DeliveryInfoResponseDto> {
+    try {
+      const updatedDelivery = await this.deliveryInfoModel.model.findOneAndUpdate(
+        { _id: deliveryInfoId },
+        { $set: updateDeliveryInfoDto },
+        { new: true },
+      );
+
+      if (!updatedDelivery) {
+        throw new BadRequestException('Delivery info not found');
+      }
+      return plainToClass(DeliveryInfoResponseDto, updatedDelivery.toObject());
+    } catch (error) {
+      throw new BadRequestException(`Error while updating Delivery info: ${error.message}`);
+    }
+  }
+
+  async removeDeliveryInfo(deliveryInfoId: string): Promise<void> {
+    try {
+      const deletedDelivery = await this.deliveryInfoModel.model.findOneAndDelete({ _id: deliveryInfoId });
+
+      if (!deletedDelivery) {
+        throw new BadRequestException('Delivery not found');
+      }
+    } catch (error) {
+      throw new BadRequestException(`Error while deleting Delivery: ${error.message}`);
+    }
   }
 }

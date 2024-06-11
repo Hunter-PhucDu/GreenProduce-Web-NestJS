@@ -134,7 +134,6 @@ export class UpdateProductRequestDto {
   sale?: number;
 }
 
-
 export class GetProductsRequestDto extends PaginationDto {
   @ApiProperty({
     required: false,

@@ -9,7 +9,7 @@ import { getPagination } from 'modules/shared/utils/get-pagination';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly productModel: ProductModel) { }
+  constructor(private readonly productModel: ProductModel) {}
 
   async addProduct(addProductDto: AddProductRequestDto, images: string[]): Promise<ProductResponseDto> {
     try {
@@ -66,7 +66,7 @@ export class ProductService {
   async getProducts(): Promise<ProductResponseDto[]> {
     try {
       const productsDoc = await this.productModel.model.find().exec();
-      return productsDoc.map(doc => ({
+      return productsDoc.map((doc) => ({
         productName: doc.productName,
         images: doc.images,
         description: doc.description,
@@ -81,7 +81,9 @@ export class ProductService {
     }
   }
 
-  async getProductsBySearch(paginationDto: GetProductsRequestDto): Promise<ListRecordSuccessResponseDto<ProductResponseDto>> {
+  async getProductsBySearch(
+    paginationDto: GetProductsRequestDto,
+  ): Promise<ListRecordSuccessResponseDto<ProductResponseDto>> {
     const { page, size, search } = paginationDto;
     const skip = (page - 1) * size;
 
