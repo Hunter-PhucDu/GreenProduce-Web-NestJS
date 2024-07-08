@@ -63,19 +63,6 @@ export class UpdateUserRequestDto {
   })
   @IsOptional()
   dateOfBirth?: Date;
-
-  @Expose()
-  @ApiProperty({
-    required: true,
-    type: String,
-    example: '******',
-  })
-  @IsOptional()
-  @Transform(({ value }) => value?.trim())
-  @Matches(/^[^\s]*$/, {
-    message: 'Password should not contain spaces.',
-  })
-  password?: string;
 }
 
 @Exclude()

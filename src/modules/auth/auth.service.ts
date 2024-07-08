@@ -181,7 +181,7 @@ export class AuthService {
     await this.userModel.model.findByIdAndUpdate(_id, { refreshToken: null });
   }
 
-  async signUp(signupDto: SignUpRequestDto, avatar: string): Promise<SignUpResponseDto> {
+  async signUp(signupDto: SignUpRequestDto, avatar?: string): Promise<SignUpResponseDto> {
     try {
       const { userName, fullName, email, phone, password } = signupDto;
       const existedUser = await this.userModel.model.findOne({

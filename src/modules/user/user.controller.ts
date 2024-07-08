@@ -10,8 +10,9 @@ import {
   Req,
   Query,
   UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import {
   ApiSuccessPaginationResponse,
@@ -53,26 +54,44 @@ const userAvatarStorageConfig: MulterOptions = {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Put(':userId/settings')
+  @Get('')
   @Roles([ERole.ADMIN, ERole.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
-    summary: 'Update user by admin or user',
-    description: 'Update user by admin or user',
+    summary: 'Get detail user',
+    description: 'Get detail user',
+  })
+  @ApiSuccessResponse({ dataType: UserResponseDto })
+  async getUser(@Req() req): Promise<UserResponseDto> {
+    const user: IJwtPayload = req.user;
+    return await this.userService.getUser(user);
+  }
+
+  @Put('settings')
+  @Roles([ERole.USER])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Update user',
+    description: 'Update user',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Update user form-data',
+    type: UpdateUserRequestDto,
   })
   @UseInterceptors(FileInterceptor('avatar', userAvatarStorageConfig))
   @ApiSuccessResponse({ dataType: UserResponseDto })
   async updateUser(
+    @UploadedFile() avatar: Express.Multer.File,
     @Body() body: UpdateUserRequestDto,
-    @Param('userId', new ValidateObjectId()) userId: string,
     @Req() req,
   ): Promise<UserResponseDto> {
     const user: IJwtPayload = req.user;
-    const res = await this.userService.updateUser(user, userId, body);
+    const res = await this.userService.updateUser(user, body, avatar?.filename);
     return plainToInstance(UserResponseDto, res);
   }
 
-  @Put(':userId/change-password')
+  @Put('change-password')
   @Roles([ERole.ADMIN, ERole.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
@@ -80,41 +99,13 @@ export class UserController {
     description: 'Change password user',
   })
   @ApiSuccessResponse({ dataType: ChangePasswordResponseDto })
-  async changePassword(
-    @Body() body: ChangePasswordRequestDto,
-    @Param('userId', new ValidateObjectId()) userId: string,
-    @Req() req,
-  ): Promise<ChangePasswordResponseDto> {
+  async changePassword(@Body() body: ChangePasswordRequestDto, @Req() req): Promise<ChangePasswordResponseDto> {
     const user: IJwtPayload = req.user;
-    const res = await this.userService.changePassword(user, userId, body);
+    const res = await this.userService.changePassword(user, body);
     return plainToInstance(ChangePasswordResponseDto, { newPassword: res.newPassword });
   }
 
-  @Get(':userId')
-  @Roles([ERole.ADMIN, ERole.USER])
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiOperation({
-    summary: 'Get user by userId',
-    description: 'Get user by userId',
-  })
-  @ApiSuccessResponse({ dataType: UserResponseDto })
-  async getUser(@Param('userId', new ValidateObjectId()) userId: string, @Req() req): Promise<UserResponseDto> {
-    const user: IJwtPayload = req.user;
-    return await this.userService.getUser(user, userId);
-  }
-
-  @Delete(':userId')
-  @Roles([ERole.ADMIN])
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiOperation({
-    summary: 'Delete user',
-    description: 'Delete user',
-  })
-  async deleteUser(@Param('userId') userId: string): Promise<void> {
-    await this.userService.deleteUser(userId);
-  }
-
-  @Get('')
+  @Get('users')
   @Roles([ERole.ADMIN])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
@@ -128,6 +119,16 @@ export class UserController {
     return await this.userService.getUsers(getUsersRequestDto);
   }
 
+  @Delete(':userId')
+  @Roles([ERole.ADMIN])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Delete user',
+    description: 'Delete user',
+  })
+  async deleteUser(@Param('userId') userId: string): Promise<void> {
+    await this.userService.deleteUser(userId);
+  }
   @Post('DeliveryInfo')
   @Roles([ERole.ADMIN, ERole.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)

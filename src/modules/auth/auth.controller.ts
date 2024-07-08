@@ -16,7 +16,6 @@ import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserResponseDto } from 'modules/user/dtos/response.dto';
-import { SingleImageFileValidationPipe } from 'modules/shared/validators/file.validator';
 
 const userAvatarStorageConfig: MulterOptions = {
   storage: diskStorage({
@@ -57,10 +56,7 @@ export class AuthController {
   })
   @UseInterceptors(FileInterceptor('avatar', userAvatarStorageConfig))
   @ApiSuccessResponse({ dataType: UserResponseDto })
-  async addUser(
-    @UploadedFile(new SingleImageFileValidationPipe()) avatar: Express.Multer.File,
-    @Body() body: SignUpRequestDto,
-  ): Promise<UserResponseDto> {
+  async addUser(@UploadedFile() avatar: Express.Multer.File, @Body() body: SignUpRequestDto): Promise<UserResponseDto> {
     return await this.authService.signUp(body, avatar?.filename);
   }
 

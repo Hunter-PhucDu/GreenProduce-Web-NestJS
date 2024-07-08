@@ -17,25 +17,41 @@ import {
 import { ChangePasswordResponseDto, DeliveryInfoResponseDto, UserResponseDto } from './dtos/response.dto';
 import { Types } from 'mongoose';
 import { DeliveryInfoModel } from 'modules/shared/models/deliveryInfo.model';
+import { CartModel } from 'modules/shared/models/cart.model';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userModel: UserModel,
     private readonly authService: AuthService,
+    private readonly cartModel: CartModel,
     private readonly deliveryInfoModel: DeliveryInfoModel,
   ) {}
 
-  async updateUser(user: IJwtPayload, userId: string, updateUserDto: UpdateUserRequestDto): Promise<UserResponseDto> {
+  async getUser(user: IJwtPayload): Promise<UserResponseDto> {
+    if (user.role === ERole.USER) {
+      if (user._id !== user._id) throw new UnauthorizedException('User is not allowed for this action');
+    }
+
+    const userDoc = await this.userModel.model.findById(user._id);
+    return plainToInstance(UserResponseDto, userDoc.toObject());
+  }
+
+  async updateUser(user: IJwtPayload, updateUserDto: UpdateUserRequestDto, avatar?: string): Promise<UserResponseDto> {
     try {
       if (user.role === ERole.USER) {
         delete updateUserDto.email;
         delete updateUserDto.phone;
       }
 
+      const updateData: any = { ...updateUserDto };
+      if (avatar) {
+        updateData.avatar = avatar;
+      }
+
       const updatedUser = await this.userModel.model.findOneAndUpdate(
-        { _id: userId },
-        { $set: updateUserDto },
+        { _id: user._id },
+        { $set: updateData },
         { new: true },
       );
 
@@ -51,11 +67,10 @@ export class UserService {
 
   async changePassword(
     user: IJwtPayload,
-    userId: string,
     changePasswordDto: ChangePasswordRequestDto,
   ): Promise<ChangePasswordResponseDto> {
     try {
-      const existedUser = await this.userModel.model.findById({ _id: userId });
+      const existedUser = await this.userModel.model.findById({ _id: user._id });
       if (!existedUser) {
         throw new BadRequestException('User not found');
       }
@@ -76,15 +91,6 @@ export class UserService {
     } catch (error) {
       throw new BadRequestException(`Error while changing password: ${error.message}`);
     }
-  }
-
-  async getUser(user: IJwtPayload, userId: string): Promise<UserResponseDto> {
-    if (user.role === ERole.USER) {
-      if (user._id !== userId) throw new UnauthorizedException('User is not allowed for this action');
-    }
-
-    const userDoc = await this.userModel.model.findById(userId);
-    return plainToInstance(UserResponseDto, userDoc.toObject());
   }
 
   async getUsers(paginationDto: GetUsersRequestDto): Promise<ListRecordSuccessResponseDto<UserResponseDto>> {
@@ -111,7 +117,12 @@ export class UserService {
 
   async deleteUser(userId: string): Promise<void> {
     try {
+      const deletedCart = await this.cartModel.model.findOneAndDelete({ owner: userId });
       const deletedUser = await this.userModel.model.findOneAndDelete({ _id: userId });
+
+      if (!deletedCart) {
+        throw new BadRequestException('Cart not found');
+      }
 
       if (!deletedUser) {
         throw new BadRequestException('User not found');

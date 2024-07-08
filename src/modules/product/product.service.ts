@@ -24,18 +24,6 @@ export class ProductService {
     }
   }
 
-  async getProduct(productId: string): Promise<ProductResponseDto> {
-    try {
-      const Doc = await this.productModel.model.findById(productId);
-      if (!Doc) {
-        throw new BadRequestException('Product  does not exist');
-      }
-      return plainToInstance(ProductResponseDto, Doc.toObject());
-    } catch (e) {
-      throw new BadRequestException(`Error while get product details: ${e.message}`);
-    }
-  }
-
   async updateProduct(productId: string, updateProductDto: UpdateProductRequestDto): Promise<ProductResponseDto> {
     try {
       const updated = await this.productModel.model.findOneAndUpdate(
@@ -53,13 +41,15 @@ export class ProductService {
     }
   }
 
-  async removeProduct(productId: string): Promise<void> {
+  async getProduct(productId: string): Promise<ProductResponseDto> {
     try {
       const Doc = await this.productModel.model.findById(productId);
-      if (!Doc) throw new BadRequestException('Product  does not exist');
-      await this.productModel.model.findByIdAndRemove(productId);
+      if (!Doc) {
+        throw new BadRequestException('Product  does not exist');
+      }
+      return plainToInstance(ProductResponseDto, Doc.toObject());
     } catch (e) {
-      throw new BadRequestException(`Error while deleting product : ${e.message}`);
+      throw new BadRequestException(`Error while get product details: ${e.message}`);
     }
   }
 
@@ -101,5 +91,15 @@ export class ProductService {
       metadata,
       data: productResponseDtos,
     };
+  }
+
+  async removeProduct(productId: string): Promise<void> {
+    try {
+      const Doc = await this.productModel.model.findById(productId);
+      if (!Doc) throw new BadRequestException('Product  does not exist');
+      await this.productModel.model.findByIdAndRemove(productId);
+    } catch (e) {
+      throw new BadRequestException(`Error while deleting product : ${e.message}`);
+    }
   }
 }
