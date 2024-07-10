@@ -55,7 +55,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('')
-  @Roles([ERole.ADMIN, ERole.USER])
+  @Roles([ERole.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Get detail user',

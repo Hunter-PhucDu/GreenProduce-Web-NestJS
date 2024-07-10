@@ -62,7 +62,7 @@ export class AuthController {
 
   @Post('generate-otp')
   @ApiOperation({
-    summary: 'Creat opt forforgot passwword',
+    summary: 'Creat opt for forgot passwword',
     description: 'Creat opt for forgot passwword',
   })
   async generateOtp(@Body() generateOtpDto: GenerateOtpDto): Promise<void> {
