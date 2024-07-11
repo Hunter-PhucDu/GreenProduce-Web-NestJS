@@ -50,6 +50,18 @@ export class OrderController {
     return await this.orderService.getUserOrder(user, orderId);
   }
 
+  @Get('orders')
+  @Roles([ERole.ADMIN])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Get orders details',
+    description: 'Get orders details for admin',
+  })
+  @ApiSuccessPaginationResponse({ dataType: OrdersResponseDto })
+  async geUserOrders(): Promise<OrderResponseDto[]> {
+    return await this.orderService.getOrders();
+  }
+
   @Get('')
   @Roles([ERole.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -87,6 +87,41 @@ export class UserResponseDto {
   updatedAt: Date;
 }
 
+@Exclude()
+export class AddAdminResponseDto {
+  @ApiProperty({
+    type: String,
+    required: true,
+    example: 'Admin2',
+  })
+  @Expose()
+  userName: string;
+
+  @ApiProperty({
+    type: String,
+    required: true,
+    example: 'abc@gmail.com',
+  })
+  @Expose()
+  email: string;
+
+  @ApiProperty({
+    type: Date,
+    required: true,
+    example: '2024-01-05T16:40:14.532+00:00',
+  })
+  @Expose()
+  createdAt: Date;
+
+  @ApiProperty({
+    type: Date,
+    required: true,
+    example: '2024-01-05T16:40:14.532+00:00',
+  })
+  @Expose()
+  updatedAt: Date;
+}
+
 export class ChangePasswordResponseDto {
   @ApiProperty({
     type: String,

@@ -14,7 +14,10 @@ export type AdminDocument = Admin & Document;
 })
 export class Admin {
   @Prop({ required: true, type: String })
-  username: string;
+  userName: string;
+
+  @Prop({ type: String, required: true, unique: true })
+  email: string;
 
   @Prop({ required: true, type: String })
   password: string;

@@ -90,6 +90,19 @@ export class OrderService {
     }
   }
 
+  async getOrders(): Promise<OrderResponseDto[]> {
+    try {
+      const ordersDoc = await this.orderModel.model.find().exec();
+
+      return plainToInstance(
+        OrderResponseDto,
+        ordersDoc.map((order) => order.toObject()),
+      );
+    } catch (e) {
+      throw new BadRequestException(`Error while getting orders: ${e.message}`);
+    }
+  }
+
   async updateOrderStatusUser(
     user: IJwtPayload,
     orderId: string,

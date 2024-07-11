@@ -23,12 +23,18 @@ import { ERole } from '../../modules/shared/enums/auth.enum';
 import { JwtAuthGuard } from '../../modules/shared/gaurds/jwt.guard';
 import { RolesGuard } from '../../modules/shared/gaurds/role.gaurd';
 import {
+  AddAdminRequestDto,
   AddDeliveryInfoRequestDto,
   ChangePasswordRequestDto,
   GetUsersRequestDto,
   UpdateUserRequestDto,
 } from './dtos/request.dto';
-import { ChangePasswordResponseDto, DeliveryInfoResponseDto, UserResponseDto } from './dtos/response.dto';
+import {
+  AddAdminResponseDto,
+  ChangePasswordResponseDto,
+  DeliveryInfoResponseDto,
+  UserResponseDto,
+} from './dtos/response.dto';
 import { UserService } from './user.service';
 import { ValidateObjectId } from '../../modules/shared/validators/id.validator';
 import { IJwtPayload } from '../../modules/shared/interfaces/auth.interface';
@@ -54,12 +60,28 @@ const userAvatarStorageConfig: MulterOptions = {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Post('addAdmin')
+  @Roles([ERole.ADMIN])
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Add new admin',
+    description: 'Add new admin',
+  })
+  @ApiBody({
+    description: 'Add new admin form-data',
+    type: AddAdminRequestDto,
+  })
+  @ApiSuccessResponse({ dataType: AddAdminResponseDto })
+  async addAdmin(@Body() body: AddAdminRequestDto): Promise<AddAdminResponseDto> {
+    return await this.userService.addAdmin(body);
+  }
+
   @Get('')
   @Roles([ERole.USER])
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({
-    summary: 'Get detail user',
-    description: 'Get detail user',
+    summary: 'Get user details',
+    description: 'Get user details',
   })
   @ApiSuccessResponse({ dataType: UserResponseDto })
   async getUser(@Req() req): Promise<UserResponseDto> {

@@ -95,6 +95,44 @@ export class ChangePasswordRequestDto {
 }
 
 @Exclude()
+export class AddAdminRequestDto {
+  @Expose()
+  @ApiProperty({
+    required: true,
+    type: String,
+    example: 'VanA123',
+  })
+  @IsNotEmpty()
+  userName: string;
+
+  @Expose()
+  @ApiProperty({
+    required: true,
+    type: String,
+    example: 'abc@gmail.com',
+  })
+  @IsNotEmpty()
+  @IsEmailOrPhone({
+    message: 'Email is not valid',
+  })
+  @Transform(({ value }) => value?.trim())
+  email: string;
+
+  @Expose()
+  @ApiProperty({
+    required: true,
+    type: String,
+    example: '******',
+  })
+  @IsNotEmpty()
+  @Transform(({ value }) => value?.trim())
+  @Matches(/^[^\s]*$/, {
+    message: 'Password should not contain spaces.',
+  })
+  password: string;
+}
+
+@Exclude()
 export class AddDeliveryInfoRequestDto {
   @Expose()
   @ApiProperty({

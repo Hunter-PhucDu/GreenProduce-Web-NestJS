@@ -8,25 +8,57 @@ import { IJwtPayload } from '../../modules/shared/interfaces/auth.interface';
 import { UserModel } from '../../modules/shared/models/user.model';
 import { getPagination } from '../../modules/shared/utils/get-pagination';
 import {
+  AddAdminRequestDto,
   AddDeliveryInfoRequestDto,
   ChangePasswordRequestDto,
   GetUsersRequestDto,
   UpdateDeliveryInfoRequestDto,
   UpdateUserRequestDto,
 } from './dtos/request.dto';
-import { ChangePasswordResponseDto, DeliveryInfoResponseDto, UserResponseDto } from './dtos/response.dto';
+import {
+  AddAdminResponseDto,
+  ChangePasswordResponseDto,
+  DeliveryInfoResponseDto,
+  UserResponseDto,
+} from './dtos/response.dto';
 import { Types } from 'mongoose';
 import { DeliveryInfoModel } from 'modules/shared/models/deliveryInfo.model';
 import { CartModel } from 'modules/shared/models/cart.model';
+import { AdminModel } from 'modules/shared/models/admin.model';
 
 @Injectable()
 export class UserService {
   constructor(
+    private readonly adminModel: AdminModel,
     private readonly userModel: UserModel,
     private readonly authService: AuthService,
     private readonly cartModel: CartModel,
     private readonly deliveryInfoModel: DeliveryInfoModel,
   ) {}
+
+  async addAdmin(addAdminDto: AddAdminRequestDto): Promise<AddAdminResponseDto> {
+    try {
+      const { userName, email, password } = addAdminDto;
+      const existedUser = await this.adminModel.model.findOne({
+        $or: [{ userName }, { email }],
+      });
+
+      if (existedUser) {
+        throw new BadRequestException('UserName, Email or phone number has been registered.');
+      }
+
+      const hashedPw = await this.authService.hashPassword(password);
+
+      const newUser = await this.adminModel.save({
+        ...addAdminDto,
+        password: hashedPw,
+        role: ERole.ADMIN,
+      });
+      return plainToClass(AddAdminResponseDto, newUser.toObject());
+    } catch (error) {
+      throw new BadRequestException(`Error while add new admin: ${error.message}`);
+    }
+  }
 
   async getUser(user: IJwtPayload): Promise<UserResponseDto> {
     if (user.role === ERole.USER) {
